@@ -7,6 +7,19 @@ FROM $OVERLEAF_BASE_TAG
 
 WORKDIR /overleaf
 
+# Align Node.js/npm with workspace engine requirements
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends curl ca-certificates gnupg \
+ && curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+ && apt-get install -y --no-install-recommends nodejs \
+ && npm install -g npm@11.4.2 \
+ && rm -rf /var/lib/sharelatex /var/log/sharelatex /etc/sharelatex \
+ && mkdir -p /var/lib/overleaf /var/log/overleaf \
+ && chown www-data:www-data /var/lib/overleaf /var/log/overleaf \
+ && apt-get purge -y curl gnupg \
+ && apt-get autoremove -y \
+ && rm -rf /var/lib/apt/lists/*
+
 # Add required source files
 # -------------------------
 ADD server-ce/genScript.js /overleaf/genScript.js

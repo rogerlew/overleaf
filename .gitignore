@@ -4,3 +4,30 @@
 # user defined files
 .env
 docker-compose.override.yml
+
+# Node.js dependencies
+node_modules/
+*/node_modules/
+services/*/node_modules/
+libraries/eslint-plugin/
+libraries/*/node_modules/
+
+# Package manager artefacts
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+
+# Build artefacts and caches
+*.cache/
+.cache/
+tmp/
+temp/
+dist/
+build/
+.parcel-cache/
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.swp

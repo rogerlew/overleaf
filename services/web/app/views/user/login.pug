@@ -43,6 +43,13 @@ block content
 										span(data-ol-inflight='idle') #{translate("login")}
 										span(hidden data-ol-inflight='pending') #{translate("logging_in")}…
 									a.float-end(href='/user/password/reset') #{translate("forgot_your_password")}?
-								if login_support_text
-									hr
-									p.text-center !{login_support_text}
+							if oauthLoginProviders && oauthLoginProviders.length
+								hr
+								p.text-center.text-muted #{translate("login_with_sso")}
+								each provider in oauthLoginProviders
+									- const buttonText = translate("login_with_service", { service: provider.name })
+									a.btn.btn-outline-primary.w-100.mb-2(href=provider.linkPath)
+										span #{buttonText}
+							if login_support_text
+								hr
+								p.text-center !{login_support_text}

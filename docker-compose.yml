@@ -3,7 +3,14 @@ services:
         restart: always
         # Server Pro users:
         # image: quay.io/sharelatex/sharelatex-pro
-        image: sharelatex/sharelatex
+        # Use locally built image (uncomment after building):
+        # image: sharelatex/sharelatex:main
+        build:
+            context: .
+            dockerfile: server-ce/Dockerfile
+        image: sharelatex/sharelatex:local
+        # Or use pre-built from Docker Hub:
+        # image: sharelatex/sharelatex
         container_name: sharelatex
         depends_on:
             mongo:
@@ -11,7 +18,7 @@ services:
             redis:
                 condition: service_started
         ports:
-            - 80:80
+            - ${EXTERNAL_PORT:-80}:80
         stop_grace_period: 60s
         volumes:
             - ~/sharelatex_data:/var/lib/overleaf
@@ -39,32 +46,44 @@ services:
             # Disables email confirmation requirement
             EMAIL_CONFIRMATION_DISABLED: 'true'
 
-            ## Set for SSL via nginx-proxy
-            #VIRTUAL_HOST: 103.112.212.22
-
-            # OVERLEAF_SITE_URL: http://overleaf.example.com
-            # OVERLEAF_NAV_TITLE: Overleaf Community Edition
+            ## Site URL Configuration (set EXTERNAL_HOST in .env)
+            ## Since you have TLS termination at HAProxy, use https://
+            OVERLEAF_SITE_URL: ${EXTERNAL_HOST}
+            OVERLEAF_NAV_TITLE: Overleaf Community Edition
             # OVERLEAF_HEADER_IMAGE_URL: http://example.com/mylogo.png
-            # OVERLEAF_ADMIN_EMAIL: support@it.com
+            OVERLEAF_ADMIN_EMAIL: ${OVERLEAF_ADMIN_EMAIL:-admin@example.com}
+            
+            ## Enable secure cookie since TLS is handled by HAProxy
+            # OVERLEAF_SECURE_COOKIE: 'true'
+            
+            ## Behind proxy configuration (required when running behind reverse proxy)
+            # OVERLEAF_BEHIND_PROXY: 'true'
+            ## Trust the proxy IPs (adjust for your environment)
+            # OVERLEAF_TRUSTED_PROXY_IPS: 'loopback,linklocal,uniquelocal'
 
             # OVERLEAF_LEFT_FOOTER: '[{"text": "Another page I want to link to can be found <a href=\"here\">here</a>"} ]'
             # OVERLEAF_RIGHT_FOOTER: '[{"text": "Hello I am on the Right"} ]'
 
-            # OVERLEAF_EMAIL_FROM_ADDRESS: "hello@example.com"
+            ## Email Configuration (Optional - uncomment and configure if needed)
+            # OVERLEAF_EMAIL_FROM_ADDRESS: "overleaf@example.com"
+            # OVERLEAF_EMAIL_REPLY_TO: "admin@example.com"
 
+            ## For AWS SES:
             # OVERLEAF_EMAIL_AWS_SES_ACCESS_KEY_ID:
             # OVERLEAF_EMAIL_AWS_SES_SECRET_KEY:
+            # OVERLEAF_EMAIL_AWS_SES_REGION: us-east-1
 
-            # OVERLEAF_EMAIL_SMTP_HOST: smtp.example.com
+            ## For SMTP (recommended for homelab):
+            # OVERLEAF_EMAIL_SMTP_HOST: smtp.gmail.com
             # OVERLEAF_EMAIL_SMTP_PORT: 587
             # OVERLEAF_EMAIL_SMTP_SECURE: false
-            # OVERLEAF_EMAIL_SMTP_USER:
-            # OVERLEAF_EMAIL_SMTP_PASS:
+            # OVERLEAF_EMAIL_SMTP_USER: your-email@gmail.com
+            # OVERLEAF_EMAIL_SMTP_PASS: your-app-password
             # OVERLEAF_EMAIL_SMTP_TLS_REJECT_UNAUTH: true
             # OVERLEAF_EMAIL_SMTP_IGNORE_TLS: false
-            # OVERLEAF_EMAIL_SMTP_NAME: '127.0.0.1'
+            # OVERLEAF_EMAIL_SMTP_NAME: 'overleaf.example.com'
             # OVERLEAF_EMAIL_SMTP_LOGGER: true
-            # OVERLEAF_CUSTOM_EMAIL_FOOTER: "This system is run by department x"
+            # OVERLEAF_CUSTOM_EMAIL_FOOTER: "Overleaf Instance"
 
             # ENABLE_CRON_RESOURCE_DELETION: true
 
@@ -77,14 +96,15 @@ services:
             ## so the following environment variables must be commented out to avoid compile issues.
             ##
             ## Sandboxed Compiles: https://docs.overleaf.com/on-premises/configuration/overleaf-toolkit/server-pro-only-configuration/sandboxed-compiles
-            SANDBOXED_COMPILES: 'true'
-            ### Bind-mount source for /var/lib/overleaf/data/compiles inside the container.
-            SANDBOXED_COMPILES_HOST_DIR_COMPILES: '/home/user/sharelatex_data/data/compiles'
-            ### Bind-mount source for /var/lib/overleaf/data/output inside the container.
-            SANDBOXED_COMPILES_HOST_DIR_OUTPUT: '/home/user/sharelatex_data/data/output'
-            ### Backwards compatibility (before Server Pro 5.5)
-            DOCKER_RUNNER: 'true'
-            SANDBOXED_COMPILES_SIBLING_CONTAINERS: 'true'
+            SANDBOXED_COMPILES: 'false'
+
+            ################
+            ## OAuth / SSO ##
+            ################
+            ## Note: OAuth providers (Google, ORCID, etc.) and SAML/LDAP are primarily
+            ## Server Pro features. Community Edition has limited OAuth support.
+            ## For full SSO capabilities, consider Overleaf Server Pro.
+            ## LDAP example configuration is shown below (requires Server Pro).
 
             ## Works with test LDAP server shown at bottom of docker compose
             # OVERLEAF_LDAP_URL: 'ldap://ldap:389'
@@ -100,8 +120,9 @@ services:
             # OVERLEAF_TEMPLATES_USER_ID: "578773160210479700917ee5"
             # OVERLEAF_NEW_PROJECT_TEMPLATE_LINKS: '[ {"name":"All Templates","url":"/templates/all"}]'
 
-
             # OVERLEAF_PROXY_LEARN: "true"
+            GITHUB_OAUTH_CLIENT_ID: ${GITHUB_OAUTH_CLIENT_ID:-}
+            GITHUB_OAUTH_CLIENT_SECRET: ${GITHUB_OAUTH_CLIENT_SECRET:-}
 
     mongo:
         restart: always

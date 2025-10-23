@@ -228,11 +228,24 @@ const UserPagesController = {
     if (Object.keys(req.query).length !== 0) {
       metadata.robotsNoindexNofollow = true
     }
+    const oauthProviderMap =
+      UserPagesController._translateProviderDescriptions(
+        Settings.oauthProviders,
+        req
+      )
+    const oauthLoginProviders = []
+    for (const [providerId, provider] of Object.entries(
+      oauthProviderMap || {}
+    )) {
+      if (provider.hideWhenNotLinked) continue
+      oauthLoginProviders.push({ providerId, ...provider })
+    }
     res.render('user/login', {
       title: Settings.nav?.login_support_title || 'login',
       login_support_title: Settings.nav?.login_support_title,
       login_support_text: Settings.nav?.login_support_text,
       metadata,
+      oauthLoginProviders,
     })
   },
 

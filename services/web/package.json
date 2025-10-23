@@ -165,6 +165,7 @@
     "p-queue": "^8.1.0",
     "parse-data-url": "^2.0.0",
     "passport": "^0.6.0",
+    "passport-github2": "^0.1.12",
     "passport-google-oauth20": "^2.0.0",
     "passport-ldapauth": "^2.1.4",
     "passport-local": "^1.0.0",
@@ -193,7 +194,6 @@
     "zod-validation-error": "^4.0.1"
   },
   "devDependencies": {
-    "5to6-codemod": "^1.8.0",
     "@babel/cli": "^7.27.0",
     "@babel/core": "^7.26.10",
     "@babel/plugin-proposal-decorators": "^7.27.0",
@@ -278,6 +278,7 @@
     "@writefull/core": "^1.27.27",
     "@writefull/ui": "^1.27.27",
     "@writefull/utils": "^1.27.27",
+    "5to6-codemod": "^1.8.0",
     "abort-controller": "^3.0.0",
     "acorn": "^7.1.1",
     "acorn-walk": "^7.1.1",

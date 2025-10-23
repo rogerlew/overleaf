@@ -16,6 +16,13 @@ let redisConfig, siteUrl
 let e
 const Path = require('path')
 
+const DEFAULT_WEB_MODULES = [
+  'history-v1',
+  'launchpad',
+  'server-ce-scripts',
+  'user-activate',
+]
+
 // These credentials are used for authenticating api requests
 // between services that may need to go over public channels
 const httpAuthUser = process.env.WEB_API_USER
@@ -206,6 +213,8 @@ const settings = {
       process.env.OVERLEAF_APP_NAME ||
       'Overleaf Community Edition',
   },
+
+  moduleImportSequence: DEFAULT_WEB_MODULES.slice(),
 
   // The email address which users will be directed to as the main point of
   // contact for this installation of Overleaf Community Edition.
@@ -495,5 +504,30 @@ const http = require('http')
 http.globalAgent.maxSockets = 300
 const https = require('https')
 https.globalAgent.maxSockets = 300
+
+const githubClientId = process.env.GITHUB_OAUTH_CLIENT_ID
+const githubClientSecret = process.env.GITHUB_OAUTH_CLIENT_SECRET
+
+if (githubClientId && githubClientSecret) {
+  if (!settings.moduleImportSequence.includes('github-oauth')) {
+    settings.moduleImportSequence.push('github-oauth')
+  }
+
+  settings.githubOAuth = {
+    clientId: githubClientId,
+    clientSecret: githubClientSecret,
+  }
+
+  const existingProviders = settings.oauthProviders || {}
+  settings.oauthProviders = {
+    ...existingProviders,
+    github: {
+      name: 'GitHub',
+      descriptionKey: 'login_with_service',
+      descriptionOptions: { service: 'GitHub' },
+      linkPath: '/auth/github',
+    },
+  }
+}
 
 module.exports = settings
